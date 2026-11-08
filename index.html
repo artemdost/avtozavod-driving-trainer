@@ -246,6 +246,11 @@ function signPos(e, s, travelDir, side) { // справа по ходу (side=1)
   const off = e.hw + 1.4 * side;
   return [p[0] - hy * off, p[1] + hx * off];
 }
+function linkedSig(e, s) {   // ближайший светофор (не пешеходный) на этом ребре в пределах 45 м вдоль дороги
+  let best = null, bd = 45;
+  for (const f of e.feats) if (f.type === 'line' && f.sig && !f.sig.ped) { const d = Math.abs(f.s - s); if (d < bd) { bd = d; best = f.sig; } }
+  return best;
+}
 (function buildFeats() {
   const junctionSigs = [];
   const interior = [];
@@ -276,7 +281,9 @@ function signPos(e, s, travelDir, side) { // справа по ходу (side=1)
     if (k === 's' || k === 'cs') {
       const p = posAt(e, s);
       let sig;
-      if (k === 'cs') sig = { x: p[0], y: p[1], off: hashOff(p[0], p[1]) * 3 % 55, ped: true };
+      const near = linkedSig(e, s);   // переход рядом с регулируемым перекрёстком работает по его светофору (машины и пешеходы не расходятся)
+      if (k === 'cs' && near) sig = near;
+      else if (k === 'cs') sig = { x: p[0], y: p[1], off: hashOff(p[0], p[1]) * 3 % 55, ped: true };
       else {
         let best = null, bd = 80;
         for (const j of junctionSigs) { const dd = Math.hypot(j.x - p[0], j.y - p[1]); if (dd < bd) { bd = dd; best = j; } }
@@ -289,7 +296,7 @@ function signPos(e, s, travelDir, side) { // справа по ходу (side=1)
       if (!e.oneway) addFeat({ type: 'line', e, s: clamp(s + gap, 0, e.len), dir: -1, sig, ow: e.oneway });
       if (k === 'cs') addFeat({ type: 'cross', e, s, sig });
     } else if (k === 'c') {
-      addFeat({ type: 'cross', e, s, sig: null });
+      addFeat({ type: 'cross', e, s, sig: linkedSig(e, s) });
     } else if (k === 'S') {
       for (const dir of (dr ? [dr] : (e.oneway ? [1] : [1, -1]))) {
         if (dir === -1 && e.oneway) continue;
@@ -604,9 +611,23 @@ function beep(f, d, type, vol, when) {
     g.gain.exponentialRampToValueAtTime(0.0001, t0 + d); o.connect(g); g.connect(actx.destination); o.start(t0); o.stop(t0 + d);
   } catch (e) { }
 }
+let RU_VOICE = null, voiceWarned = false;
+function pickRuVoice() {
+  try {
+    const vs = speechSynthesis.getVoices().filter(v => /^ru/i.test(v.lang) || /russian|рус/i.test(v.name));
+    RU_VOICE = vs.find(v => /milena|yuri|katya|irina|pavel|google.*(ru|рус)|natural|neural/i.test(v.name)) || vs.find(v => !v.localService) || vs[0] || null;
+  } catch (e) { }
+}
+try { if (window.speechSynthesis) { pickRuVoice(); speechSynthesis.onvoiceschanged = pickRuVoice; } } catch (e) { }
 function say(txt) {
   if (!S.opt.voice || !window.speechSynthesis) return;
-  try { speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(txt); u.lang = 'ru-RU'; u.rate = 1.05; speechSynthesis.speak(u); } catch (e) { }
+  try {
+    if (!RU_VOICE) pickRuVoice();
+    if (!RU_VOICE) { if (!voiceWarned) { voiceWarned = true; toast('В браузере нет русского голоса — подсказки только текстом (установите русский голос в системе)', 'minor'); } return; }
+    const u = new SpeechSynthesisUtterance(txt); u.voice = RU_VOICE; u.lang = RU_VOICE.lang || 'ru-RU'; u.rate = 1.0; u.pitch = 1;
+    if (speechSynthesis.speaking) speechSynthesis.cancel();
+    speechSynthesis.speak(u);
+  } catch (e) { }
 }
 
 /* ============================ НАРУШЕНИЯ ============================ */
@@ -1465,15 +1486,15 @@ function pedXY(p) {
   const f = p.f, n = [-f.ty, f.tx], a = p.along || 0;
   return [f.x + n[0] * p.pos + f.tx * a, f.y + n[1] * p.pos + f.ty * a];
 }
-function aiSigRedFor(sig, secs) { // красный для машин (= пешеходам можно) сохранится ближайшие secs секунд
-  if (sigState(sig, 1, 0) < 2) return false;
+function aiSigRedFor(sig, secs, hx, hy) { // красный для машин (= пешеходам можно) сохранится ближайшие secs секунд
+  if (sigState(sig, hx, hy) < 2) return false;
   const T0 = T; let ok = true;
-  try { for (let k = 0.5; k <= secs; k += 0.5) { T = T0 + k; if (sigState(sig, 1, 0) < 2) { ok = false; break; } } } finally { T = T0; }
+  try { for (let k = 0.5; k <= secs; k += 0.5) { T = T0 + k; if (sigState(sig, hx, hy) < 2) { ok = false; break; } } } finally { T = T0; }
   return ok;
 }
 function aiPedMayStart(p) {
   const f = p.f, hw = f.e.hw, tc = 2 * p.H / p.spd;
-  if (f.sig && !aiSigRedFor(f.sig, Math.min(tc * 0.8, 9))) return false;
+  if (f.sig && !aiSigRedFor(f.sig, Math.min(tc * 0.8, 9), f.tx, f.ty)) return false;
   const tx = f.tx, ty = f.ty, nx = -ty, ny = tx;
   const chk = (o, isP) => {
     const rx = o.x - f.x, ry = o.y - f.y, along = rx * tx + ry * ty, lat = rx * nx + ry * ny;
@@ -1680,6 +1701,7 @@ function rulesReset(mode) {
   }
 }
 function toggleBelt() {
+  const nowT = performance.now(); if (toggleBelt.t && nowT - toggleBelt.t < 250) return; toggleBelt.t = nowT;   // защита от двойного срабатывания (два обработчика клавиши B)
   const P = player; P.belt = !P.belt; RULES_HUD.belt = P.belt;
   toast(P.belt ? 'Ремень безопасности пристёгнут' : 'Ремень безопасности отстёгнут', ''); beep(P.belt ? 700 : 300, 0.08, 'square', 0.05);
 }
