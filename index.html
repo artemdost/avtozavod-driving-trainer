@@ -668,7 +668,7 @@ function toast(txt, cls) {
   while ($('toasts').children.length > 5) $('toasts').firstChild.remove();
 }
 function violate(key, text, pts, cooldown, meta) {
-  if (S.over || (S.cd[key] && T < S.cd[key])) return false;
+  if (S.over || S.mode === 'free' || (S.cd[key] && T < S.cd[key])) return false;   // в свободной езде штрафов нет
   S.cd[key] = T + (cooldown || 6);
   meta = meta || {};
   const gross = !!meta.gross;
