@@ -722,7 +722,7 @@ function updatePlayer(dt) {
   P.hx = Math.cos(P.ang); P.hy = Math.sin(P.ang);
   P.x += P.hx * P.v * dt; P.y += P.hy * P.v * dt;
   const loc = locate(P.x, P.y, P.hx, P.hy); P.lastLoc = loc;
-  if (!loc.on && Math.abs(P.v) > 3) { P.v -= Math.sign(P.v) * 10 * dt; }
+  /* off-road: без замедления */
   if (typeof rulesPhysics === 'function') rulesPhysics(dt, loc);
   return loc;
 }
