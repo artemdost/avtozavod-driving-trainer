@@ -1,0 +1,146 @@
+[
+ {
+  "slug": "avtozavodsky",
+  "name": "Автозаводский район",
+  "center": [
+   56.2339,
+   43.8249
+  ],
+  "bytes": 3087158,
+  "gz": 1148033,
+  "stats": {
+   "ways": 1320,
+   "signals": 127,
+   "crossings": 444,
+   "buildings": 22402,
+   "rx": 193,
+   "restr": 172
+  }
+ },
+ {
+  "slug": "nizhegorodsky",
+  "name": "Нижегородский район",
+  "center": [
+   56.3021,
+   44.0407
+  ],
+  "bytes": 3668557,
+  "gz": 1356764,
+  "stats": {
+   "ways": 1558,
+   "signals": 198,
+   "crossings": 571,
+   "buildings": 19088,
+   "rx": 9,
+   "restr": 577
+  }
+ },
+ {
+  "slug": "kanavinsky",
+  "name": "Канавинский район",
+  "center": [
+   56.317,
+   43.8655
+  ],
+  "bytes": 4893383,
+  "gz": 1862211,
+  "stats": {
+   "ways": 1504,
+   "signals": 225,
+   "crossings": 376,
+   "buildings": 29300,
+   "rx": 339,
+   "restr": 300
+  }
+ },
+ {
+  "slug": "sovetsky",
+  "name": "Советский район",
+  "center": [
+   56.2823,
+   44.0215
+  ],
+  "bytes": 3199247,
+  "gz": 1183806,
+  "stats": {
+   "ways": 1531,
+   "signals": 196,
+   "crossings": 492,
+   "buildings": 17728,
+   "rx": 8,
+   "restr": 311
+  }
+ },
+ {
+  "slug": "prioksky",
+  "name": "Приокский район",
+  "center": [
+   56.2085,
+   43.9259
+  ],
+  "bytes": 4605454,
+  "gz": 1732226,
+  "stats": {
+   "ways": 1251,
+   "signals": 58,
+   "crossings": 168,
+   "buildings": 32338,
+   "rx": 223,
+   "restr": 74
+  }
+ },
+ {
+  "slug": "moskovsky",
+  "name": "Московский район",
+  "center": [
+   56.3314,
+   43.7391
+  ],
+  "bytes": 1892833,
+  "gz": 707176,
+  "stats": {
+   "ways": 1068,
+   "signals": 120,
+   "crossings": 220,
+   "buildings": 11494,
+   "rx": 198,
+   "restr": 180
+  }
+ },
+ {
+  "slug": "leninsky",
+  "name": "Ленинский район",
+  "center": [
+   56.2786,
+   43.9051
+  ],
+  "bytes": 2665520,
+  "gz": 991435,
+  "stats": {
+   "ways": 981,
+   "signals": 134,
+   "crossings": 291,
+   "buildings": 14920,
+   "rx": 220,
+   "restr": 174
+  }
+ },
+ {
+  "slug": "sormovsky",
+  "name": "Сормовский район",
+  "center": [
+   56.3686,
+   43.7807
+  ],
+  "bytes": 2046600,
+  "gz": 766175,
+  "stats": {
+   "ways": 1044,
+   "signals": 72,
+   "crossings": 247,
+   "buildings": 16138,
+   "rx": 159,
+   "restr": 99
+  }
+ }
+]
